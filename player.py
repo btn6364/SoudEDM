@@ -37,7 +37,6 @@ class MusicPlayer:
 
         # Fetching Songs
         songtracks = os.listdir()
-        print(songtracks)
         # Inserting Songs into Playlist
         for track in songtracks:
             self.playlist.insert(END,track)
@@ -56,10 +55,12 @@ class MusicPlayer:
         buttonframe = LabelFrame(self.root,text="Control Panel",font=("times new roman",15,"bold"),bg="grey",fg="white",bd=5,relief=GROOVE)
         buttonframe.place(x=0,y=WINDOW_HEIGHT * 0.5,width=WINDOW_WIDTH * 0.6,height=WINDOW_HEIGHT * 0.5)
         #Insert Play, Pause, Unpause, Stop buttons
-        playbtn = Button(buttonframe,text="PLAY",command=self.playsong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=0,padx=10,pady=5)
-        playbtn = Button(buttonframe,text="PAUSE",command=self.pausesong,width=8,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=1,padx=10,pady=5)
-        playbtn = Button(buttonframe,text="UNPAUSE",command=self.unpausesong,width=10,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=2,padx=10,pady=5)
-        playbtn = Button(buttonframe,text="STOP",command=self.stopsong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=3,padx=10,pady=5)
+        playbtn = Button(buttonframe,text="PLAY",command=self.playSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=0,padx=10,pady=5)
+        playbtn = Button(buttonframe,text="PAUSE",command=self.pauseSong,width=8,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=1,padx=10,pady=5)
+        playbtn = Button(buttonframe,text="UNPAUSE",command=self.unpauseSong,width=10,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=2,padx=10,pady=5)
+        playbtn = Button(buttonframe,text="STOP",command=self.stopSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=3,padx=10,pady=5)
+        playbtn = Button(buttonframe,text="NEXT",command=self.nextSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=1,column=0,padx=10,pady=5)
+        playbtn = Button(buttonframe,text="PREV",command=self.prevSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=1,column=1,padx=10,pady=5)
 
     def createPlaylistFrame(self):
         # Creating Playlist Frame
@@ -75,7 +76,7 @@ class MusicPlayer:
 
 
     # Defining Play Song Function
-    def playsong(self):
+    def playSong(self):
         # Displaying Selected Song title
         self.track.set(self.playlist.get(ACTIVE))
         # Displaying Status
@@ -85,23 +86,41 @@ class MusicPlayer:
         # Playing Selected Song
         pygame.mixer.music.play()
 
-    def stopsong(self):
+    def stopSong(self):
         # Displaying Status
         self.status.set("-Stopped")
         # Stopped Song
         pygame.mixer.music.stop()
 
-    def pausesong(self):
+    def pauseSong(self):
         # Displaying Status
         self.status.set("-Paused")
         # Paused Song
         pygame.mixer.music.pause()
 
-    def unpausesong(self):
+    def unpauseSong(self):
         # Displaying Status
         self.status.set("-Playing")
         # Playing back Song
         pygame.mixer.music.unpause()
+
+    def nextSong(self):
+        cur_song_indices = self.playlist.curselection()
+        cur_song_idx = cur_song_indices[0] + 1
+        if cur_song_idx < self.playlist.size():
+            self.playlist.selection_clear(cur_song_indices)
+            self.playlist.select_set(cur_song_idx)
+            self.playlist.activate(cur_song_idx)
+            self.playSong()
+
+    def prevSong(self):
+        cur_song_indices = self.playlist.curselection()
+        cur_song_idx = cur_song_indices[0] - 1
+        if cur_song_idx >= 0:
+            self.playlist.selection_clear(cur_song_indices)
+            self.playlist.select_set(cur_song_idx)
+            self.playlist.activate(cur_song_idx)
+            self.playSong()
 
 if __name__ == "__main__":
     # Creating TK Container
