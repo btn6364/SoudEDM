@@ -82,6 +82,12 @@ class MusicPlayer:
             self.playlist.insert(END, song_title)
 
     """
+    Get the recent playlist using LRU Cache.
+    """
+    def recentPlaylist(self):
+        pass
+
+    """
     Create the action menu. 
     """
     def createMenu(self):
@@ -126,6 +132,8 @@ class MusicPlayer:
         forward_button = Button(buttonframe,text="NEXT",command=self.nextSong,width=4,height=1,font=("times new roman",14,"bold"),fg="navyblue",bg="gold").grid(row=0,column=3,padx=5,pady=5)
         back_button = Button(buttonframe,text="PREV",command=self.prevSong,width=4,height=1,font=("times new roman",14,"bold"),fg="navyblue",bg="gold").grid(row=0,column=4,padx=5,pady=5)
         shuffle_button = Button(buttonframe,text="SHUFFLE",command=self.shuffleSong,width=7,height=1,font=("times new roman",14,"bold"),fg="navyblue",bg="gold").grid(row=0,column=5,padx=5,pady=5)
+        recent_played = Button(buttonframe,text="RECENT PLAYED",command=self.recentPlaylist,width=10,height=1,font=("times new roman",12,"bold"),fg="navyblue",bg="gold").grid(row=0,column=6,padx=5,pady=5)
+
     """
     Create the playlist frame containing all songs. 
     """
@@ -252,13 +260,6 @@ class MusicPlayer:
         Keep track of the song playing time and duration. 
     """
     def songPlaytime(self):
-        # slider_time = self.time_slider.get()
-        # if int(slider_time) + 1 == int(cur_time): 
-        #     # slider hasn't been moved     
-        # else:
-        #     #slider has been moved
-        #     converted_time = time.strftime("%M:%S", time.gmtime(int(slider_time) + 1))
-        #     print("Get here")
         cur_time = pygame.mixer.music.get_pos() / 1000
         converted_time = time.strftime("%M:%S", time.gmtime(cur_time))
         cur_song_indices = self.playlist.curselection()
