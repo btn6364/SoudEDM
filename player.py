@@ -5,8 +5,11 @@ import tkinter.ttk as ttk
 import pygame
 import os
 import time
-from constants import *
 from mutagen.mp3 import MP3
+
+#Import utils
+from constants import *
+from utils.Fisher_Yates_shuffle import Fisher_Yates_randomize
 
 #Import Database
 from database import Database
@@ -71,6 +74,14 @@ class MusicPlayer:
             self.playlist.insert(END, song_title)
 
     """
+        Update the playlist. Erase everthing in the list box and create a new list. 
+    """
+    def updatePlaylist(self, song_titles):
+        self.playlist.delete(0, END)
+        for song_title in song_titles:
+            self.playlist.insert(END, song_title)
+
+    """
     Create the action menu. 
     """
     def createMenu(self):
@@ -109,12 +120,12 @@ class MusicPlayer:
         buttonframe = LabelFrame(self.root,text="Control Panel",font=("times new roman",15,"bold"),bg="grey",fg="white",bd=5,relief=GROOVE)
         buttonframe.place(x=0,y=WINDOW_HEIGHT * 0.5,width=WINDOW_WIDTH * 0.6,height=WINDOW_HEIGHT * 0.5)
         #Insert Play, Pause, Unpause, Stop buttons
-        play_button = Button(buttonframe,text="PLAY",command=self.playSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=0,padx=5,pady=5)
-        pause_button = Button(buttonframe,text="PAUSE",command=self.pauseSong,width=8,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=1,padx=5,pady=5)
-        stop_button = Button(buttonframe,text="STOP",command=self.stopSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=2,padx=5,pady=5)
-        forward_button = Button(buttonframe,text="NEXT",command=self.nextSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=3,padx=5,pady=5)
-        back_button = Button(buttonframe,text="PREV",command=self.prevSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=4,padx=5,pady=5)
-
+        play_button = Button(buttonframe,text="PLAY",command=self.playSong,width=4,height=1,font=("times new roman",14,"bold"),fg="navyblue",bg="gold").grid(row=0,column=0,padx=5,pady=5)
+        pause_button = Button(buttonframe,text="PAUSE",command=self.pauseSong,width=5,height=1,font=("times new roman",14,"bold"),fg="navyblue",bg="gold").grid(row=0,column=1,padx=5,pady=5)
+        stop_button = Button(buttonframe,text="STOP",command=self.stopSong,width=4,height=1,font=("times new roman",14,"bold"),fg="navyblue",bg="gold").grid(row=0,column=2,padx=5,pady=5)
+        forward_button = Button(buttonframe,text="NEXT",command=self.nextSong,width=4,height=1,font=("times new roman",14,"bold"),fg="navyblue",bg="gold").grid(row=0,column=3,padx=5,pady=5)
+        back_button = Button(buttonframe,text="PREV",command=self.prevSong,width=4,height=1,font=("times new roman",14,"bold"),fg="navyblue",bg="gold").grid(row=0,column=4,padx=5,pady=5)
+        shuffle_button = Button(buttonframe,text="SHUFFLE",command=self.shuffleSong,width=7,height=1,font=("times new roman",14,"bold"),fg="navyblue",bg="gold").grid(row=0,column=5,padx=5,pady=5)
     """
     Create the playlist frame containing all songs. 
     """
@@ -165,7 +176,6 @@ class MusicPlayer:
     """
     def playSong(self):
         song_title = self.playlist.get(ACTIVE)
-        print(song_title)
         self.track.set(song_title)
         self.status.set(" - Playing")
         # Load the audio 
@@ -223,6 +233,20 @@ class MusicPlayer:
             self.playlist.select_set(cur_song_idx)
             self.playlist.activate(cur_song_idx)
             self.playSong()
+
+    """
+    Shuffle playlist using Fisher_Yates algorithm. 
+    """
+    def shuffleSong(self):
+        #Get an array of songs and shuffle
+        songs = self.database.getSongCollection()
+        song_titles = []
+        for id, song_title, audio in songs:
+            song_titles.append(song_title)
+        song_titles = Fisher_Yates_randomize(song_titles)
+        #update the playlist
+        self.updatePlaylist(song_titles)
+        
 
     """
         Keep track of the song playing time and duration. 
