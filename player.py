@@ -1,11 +1,13 @@
 # Importing Required Modules & libraries
 from tkinter import *
 from tkinter import filedialog
+import tkinter.ttk as ttk 
 import pygame
 import os
 import time
 from constants import *
 from mutagen.mp3 import MP3
+
 #Import Database
 from database import Database
 
@@ -49,12 +51,18 @@ class MusicPlayer:
         #create the playlist from the existing database
         self.createPlaylist()
 
+    """
+    Fetch the song playlist from the database. 
+    """
     def createPlaylist(self):
         #Insert song title into play list 
         songs = self.database.getSongCollection()
         for id, song_title, song_dir in songs:
             self.playlist.insert(END, song_title)
 
+    """
+    Create the action menu. 
+    """
     def createMenu(self):
         #create the menu bar
         main_menu = Menu(self.root)
@@ -64,6 +72,9 @@ class MusicPlayer:
         action_menu.add_command(label="Add song", command=self.addSong)
         action_menu.add_command(label="Remove song", command=self.removeSong)
 
+    """
+    Create the track frame contains all the information about the current playing song. 
+    """
     def createTrackFrame(self):
         # Creating Track Frame for Song label & status label
         trackframe = LabelFrame(self.root,text="Song Track",font=("times new roman",15,"bold"),bg="grey",fg="white",bd=5,relief=GROOVE)
@@ -71,11 +82,18 @@ class MusicPlayer:
         # Inserting Song Track and Track Status label. 
         song_track = Label(trackframe,textvariable=self.track,width=20,font=("times new roman",24,"bold"),bg="grey",fg="gold")
         song_track.pack(fill=X, side=TOP)
-        # trackstatus = Label(trackframe,textvariable=self.status,font=("times new roman",24,"bold"),bg="grey",fg="gold")
+
+        #create time slider
+        self.time_slider = ttk.Scale(trackframe, from_=0, to=100, orient=HORIZONTAL, value=0)
+        self.time_slider.pack(fill=X, side=TOP)
+
         #create time bar
         self.time_bar = Label(trackframe, text="", bd=1, relief=GROOVE, anchor=E)
         self.time_bar.pack(fill=X, side=BOTTOM, ipady=0.5)
 
+    """
+    Create the control panel. 
+    """
     def createButtonFrame(self):
         # Creating Button Frame
         buttonframe = LabelFrame(self.root,text="Control Panel",font=("times new roman",15,"bold"),bg="grey",fg="white",bd=5,relief=GROOVE)
@@ -87,6 +105,9 @@ class MusicPlayer:
         forward_button = Button(buttonframe,text="NEXT",command=self.nextSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=3,padx=5,pady=5)
         back_button = Button(buttonframe,text="PREV",command=self.prevSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=4,padx=5,pady=5)
 
+    """
+    Create the playlist frame containing all songs. 
+    """
     def createPlaylistFrame(self):
         # Creating Playlist Frame
         songsframe = LabelFrame(self.root,text="Song Playlist",font=("times new roman",15,"bold"),bg="grey",fg="white",bd=5,relief=GROOVE)
@@ -99,7 +120,17 @@ class MusicPlayer:
         scrol_y.config(command=self.playlist.yview)
         self.playlist.pack(fill=BOTH)
 
+    """
+    Keep track of the song playing time and duration. 
+    """
     def songPlaytime(self):
+        # slider_time = self.time_slider.get()
+        # if int(slider_time) + 1 == int(cur_time): 
+        #     # slider hasn't been moved     
+        # else:
+        #     #slider has been moved
+        #     converted_time = time.strftime("%M:%S", time.gmtime(int(slider_time) + 1))
+        #     print("Get here")
         cur_time = pygame.mixer.music.get_pos() / 1000
         converted_time = time.strftime("%M:%S", time.gmtime(cur_time))
         cur_song_indices = self.playlist.curselection()
@@ -111,9 +142,13 @@ class MusicPlayer:
             song_length = mutagen_mp3.info.length
             converted_song_length = time.strftime("%M:%S", time.gmtime(song_length))
             #output to time bar
+            self.time_slider.config(value=cur_time, to=song_length)
             self.time_bar.config(text=f"Time elapsed: {converted_time} of {converted_song_length}")
             self.time_bar.after(1000, self.songPlaytime)
 
+    """
+    Add a song to the playlist. 
+    """
     def addSong(self):
         song_dir = filedialog.askopenfilename(initialdir="songs", title="Choose a song", filetypes=[("mp3 files", "*.mp3")])
         #trimp the directory and file extension to get the song_title
@@ -127,6 +162,9 @@ class MusicPlayer:
         self.database.addSong(song)
         self.playlist.insert(END, song_title)
 
+    """
+    Remove a song from the playlist. 
+    """
     def removeSong(self):
         cur_song_idx = self.playlist.curselection()[0]
         #stop the song before remove it from the database
@@ -134,6 +172,9 @@ class MusicPlayer:
         self.database.removeSong(cur_song_idx + 1)
         self.playlist.delete(cur_song_idx)
 
+    """
+    Play the selected song
+    """
     def playSong(self):
         song_title = self.playlist.get(ACTIVE)
         self.track.set(song_title)
@@ -147,14 +188,16 @@ class MusicPlayer:
         #Get playtime info
         self.songPlaytime()
       
+    """
+    Stop the current playing song. 
+    """
     def stopSong(self):
-        # Displaying Status
         self.status.set(" - Stopped")
-        # Stopped Song
         pygame.mixer.music.stop()
         #clear the time bar and selection bar
         self.playlist.selection_clear(ACTIVE)
         self.time_bar.config(text="")
+        self.time_slider.config(value=0)
 
     """
     Pause and unpause song
@@ -169,7 +212,9 @@ class MusicPlayer:
             pygame.mixer.music.pause()
             self.paused = True
        
-
+    """
+    Play the next song. Stop if the current song is the last one. 
+    """
     def nextSong(self):
         cur_song_indices = self.playlist.curselection()
         cur_song_idx = cur_song_indices[0] + 1
@@ -179,6 +224,9 @@ class MusicPlayer:
             self.playlist.activate(cur_song_idx)
             self.playSong()
 
+    """
+    Play the previous song. Stop if the current song is the first one. 
+    """
     def prevSong(self):
         cur_song_indices = self.playlist.curselection()
         cur_song_idx = cur_song_indices[0] - 1
@@ -188,6 +236,9 @@ class MusicPlayer:
             self.playlist.activate(cur_song_idx)
             self.playSong()
 
+"""
+    Execute the music player. 
+"""
 if __name__ == "__main__":
     # Creating TK Container
     root = Tk()
