@@ -1,13 +1,11 @@
 # Importing Required Modules & libraries
 from tkinter import *
 from tkinter import filedialog
-from constants import *
-from pydub import AudioSegment
-from pydub.playback import play
 import pygame
 import os
-import io
-
+import time
+from constants import *
+from mutagen.mp3 import MP3
 #Import Database
 from database import Database
 
@@ -68,8 +66,12 @@ class MusicPlayer:
         trackframe = LabelFrame(self.root,text="Song Track",font=("times new roman",15,"bold"),bg="grey",fg="white",bd=5,relief=GROOVE)
         trackframe.place(x=0,y=0,width=WINDOW_WIDTH * 0.6,height=WINDOW_HEIGHT * 0.5)
         # Inserting Song Track and Track Status label. 
-        songtrack = Label(trackframe,textvariable=self.track,width=20,font=("times new roman",24,"bold"),bg="grey",fg="gold").grid(row=0,column=0,padx=10,pady=5)
-        trackstatus = Label(trackframe,textvariable=self.status,font=("times new roman",24,"bold"),bg="grey",fg="gold").grid(row=0,column=1,padx=10,pady=5)
+        song_track = Label(trackframe,textvariable=self.track,width=20,font=("times new roman",24,"bold"),bg="grey",fg="gold")
+        song_track.pack(fill=X, side=TOP)
+        # trackstatus = Label(trackframe,textvariable=self.status,font=("times new roman",24,"bold"),bg="grey",fg="gold")
+        #create time bar
+        self.time_bar = Label(trackframe, text="", bd=1, relief=GROOVE, anchor=E)
+        self.time_bar.pack(fill=X, side=BOTTOM, ipady=0.5)
 
     def createButtonFrame(self):
         # Creating Button Frame
@@ -95,6 +97,21 @@ class MusicPlayer:
         scrol_y.config(command=self.playlist.yview)
         self.playlist.pack(fill=BOTH)
 
+    def songPlaytime(self):
+        cur_time = pygame.mixer.music.get_pos() / 1000
+        converted_time = time.strftime("%M:%S", time.gmtime(cur_time))
+        cur_song_indices = self.playlist.curselection()
+        if cur_song_indices:
+            cur_song_idx = cur_song_indices[0] + 1
+            audio = self.database.getSong(cur_song_idx)[2]
+            #load song's length with Mutagen
+            mutagen_mp3 = MP3(audio)
+            song_length = mutagen_mp3.info.length
+            converted_song_length = time.strftime("%M:%S", time.gmtime(song_length))
+            #output to time bar
+            self.time_bar.config(text=f"Time elapsed: {converted_time} of {converted_song_length}")
+            self.time_bar.after(1000, self.songPlaytime)
+
     def addSong(self):
         song_dir = filedialog.askopenfilename(initialdir="songs", title="Choose a song", filetypes=[("mp3 files", "*.mp3")])
         #trimp the directory and file extension to get the song_title
@@ -115,7 +132,6 @@ class MusicPlayer:
         self.database.removeSong(cur_song_idx + 1)
         self.playlist.delete(cur_song_idx)
 
-    # Defining Play Song Function
     def playSong(self):
         song_title = self.playlist.get(ACTIVE)
         self.track.set(song_title)
@@ -126,12 +142,17 @@ class MusicPlayer:
         pygame.mixer.music.load(audio)
         # Playing Selected Song
         pygame.mixer.music.play()
+        #Get playtime info
+        self.songPlaytime()
       
     def stopSong(self):
         # Displaying Status
         self.status.set("-Stopped")
         # Stopped Song
         pygame.mixer.music.stop()
+        #clear the time bar and selection bar
+        self.playlist.selection_clear(ACTIVE)
+        self.time_bar.config(text="")
 
     def pauseSong(self):
         # Displaying Status
