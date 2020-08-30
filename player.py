@@ -28,6 +28,9 @@ class MusicPlayer:
         # Declaring Status Variable
         self.status = StringVar()
 
+        #declare if the player is paused
+        self.paused = False
+
         #create menu
         self.createMenu()
 
@@ -80,10 +83,9 @@ class MusicPlayer:
         #Insert Play, Pause, Unpause, Stop buttons
         play_button = Button(buttonframe,text="PLAY",command=self.playSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=0,padx=5,pady=5)
         pause_button = Button(buttonframe,text="PAUSE",command=self.pauseSong,width=8,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=1,padx=5,pady=5)
-        unpause_button = Button(buttonframe,text="UNPAUSE",command=self.unpauseSong,width=10,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=2,padx=5,pady=5)
-        stop_button = Button(buttonframe,text="STOP",command=self.stopSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=3,padx=5,pady=5)
-        forward_button = Button(buttonframe,text="NEXT",command=self.nextSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=4,padx=5,pady=5)
-        back_button = Button(buttonframe,text="PREV",command=self.prevSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=5,padx=5,pady=5)
+        stop_button = Button(buttonframe,text="STOP",command=self.stopSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=2,padx=5,pady=5)
+        forward_button = Button(buttonframe,text="NEXT",command=self.nextSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=3,padx=5,pady=5)
+        back_button = Button(buttonframe,text="PREV",command=self.prevSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=4,padx=5,pady=5)
 
     def createPlaylistFrame(self):
         # Creating Playlist Frame
@@ -147,24 +149,26 @@ class MusicPlayer:
       
     def stopSong(self):
         # Displaying Status
-        self.status.set("-Stopped")
+        self.status.set(" - Stopped")
         # Stopped Song
         pygame.mixer.music.stop()
         #clear the time bar and selection bar
         self.playlist.selection_clear(ACTIVE)
         self.time_bar.config(text="")
 
+    """
+    Pause and unpause song
+    """
     def pauseSong(self):
-        # Displaying Status
-        self.status.set("-Paused")
-        # Paused Song
-        pygame.mixer.music.pause()
-
-    def unpauseSong(self):
-        # Displaying Status
-        self.status.set("-Playing")
-        # Playing back Song
-        pygame.mixer.music.unpause()
+        if self.paused:
+            self.status.set(" - Playing")
+            pygame.mixer.music.unpause()
+            self.paused = False
+        else:
+            self.status.set("- Paused")
+            pygame.mixer.music.pause()
+            self.paused = True
+       
 
     def nextSong(self):
         cur_song_indices = self.playlist.curselection()
