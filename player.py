@@ -1,9 +1,12 @@
 # Importing Required Modules & libraries
 from tkinter import *
+from tkinter import filedialog
 import pygame
 import os
 from constants import *
 
+#Import Database
+from database import Database
 
 # Defining MusicPlayer Class
 class MusicPlayer:
@@ -14,7 +17,7 @@ class MusicPlayer:
         # Title of the window
         self.root.title("SoundEDM")
         # Window Geometry
-        self.root.geometry("1000x400")
+        self.root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
         # Initiating Pygame
         pygame.init()
         # Initiating Pygame Mixer
@@ -23,6 +26,10 @@ class MusicPlayer:
         self.track = StringVar()
         # Declaring Status Variable
         self.status = StringVar()
+
+        #create menu
+        self.createMenu()
+
         #draw track frame
         self.createTrackFrame()
 
@@ -31,16 +38,17 @@ class MusicPlayer:
 
         #create playlist frame
         self.createPlaylistFrame()
-       
-        # Changing Directory for fetching Songs
-        os.chdir("/home/baonguyen/Projects/python/pygame/MusicPlayer/songs")
 
-        # Fetching Songs
-        songtracks = os.listdir()
-        # Inserting Songs into Playlist
-        for track in songtracks:
-            self.playlist.insert(END,track)
+        #create database connection
+        self.database = Database()
 
+    def createMenu(self):
+        #create the menu bar
+        main_menu = Menu(self.root)
+        self.root.config(menu=main_menu)
+        action_menu = Menu(main_menu)
+        main_menu.add_cascade(label="Action", menu=action_menu)
+        action_menu.add_command(label="Add song", command=self.addSong)
 
     def createTrackFrame(self):
         # Creating Track Frame for Song label & status label
@@ -55,12 +63,12 @@ class MusicPlayer:
         buttonframe = LabelFrame(self.root,text="Control Panel",font=("times new roman",15,"bold"),bg="grey",fg="white",bd=5,relief=GROOVE)
         buttonframe.place(x=0,y=WINDOW_HEIGHT * 0.5,width=WINDOW_WIDTH * 0.6,height=WINDOW_HEIGHT * 0.5)
         #Insert Play, Pause, Unpause, Stop buttons
-        playbtn = Button(buttonframe,text="PLAY",command=self.playSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=0,padx=10,pady=5)
-        playbtn = Button(buttonframe,text="PAUSE",command=self.pauseSong,width=8,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=1,padx=10,pady=5)
-        playbtn = Button(buttonframe,text="UNPAUSE",command=self.unpauseSong,width=10,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=2,padx=10,pady=5)
-        playbtn = Button(buttonframe,text="STOP",command=self.stopSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=3,padx=10,pady=5)
-        playbtn = Button(buttonframe,text="NEXT",command=self.nextSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=1,column=0,padx=10,pady=5)
-        playbtn = Button(buttonframe,text="PREV",command=self.prevSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=1,column=1,padx=10,pady=5)
+        play_button = Button(buttonframe,text="PLAY",command=self.playSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=0,padx=5,pady=5)
+        pause_button = Button(buttonframe,text="PAUSE",command=self.pauseSong,width=8,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=1,padx=5,pady=5)
+        unpause_button = Button(buttonframe,text="UNPAUSE",command=self.unpauseSong,width=10,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=2,padx=5,pady=5)
+        stop_button = Button(buttonframe,text="STOP",command=self.stopSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=3,padx=5,pady=5)
+        forward_button = Button(buttonframe,text="NEXT",command=self.nextSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=4,padx=5,pady=5)
+        back_button = Button(buttonframe,text="PREV",command=self.prevSong,width=6,height=1,font=("times new roman",16,"bold"),fg="navyblue",bg="gold").grid(row=0,column=5,padx=5,pady=5)
 
     def createPlaylistFrame(self):
         # Creating Playlist Frame
@@ -68,17 +76,33 @@ class MusicPlayer:
         songsframe.place(x=WINDOW_WIDTH * 0.6,y=0,width=WINDOW_WIDTH * 0.4,height=WINDOW_HEIGHT)
         # Inserting scrollbar + listbox
         scrol_y = Scrollbar(songsframe,orient=VERTICAL)
-        self.playlist = Listbox(songsframe,yscrollcommand=scrol_y.set,selectbackground="gold",selectmode=SINGLE,font=("times new roman",12,"bold"),bg="silver",fg="navyblue",bd=5,relief=GROOVE, height=WINDOW_HEIGHT // 20)
+        self.playlist = Listbox(songsframe,yscrollcommand=scrol_y.set,selectbackground="gold",selectmode=SINGLE,font=("times new roman",12,"bold"),bg="silver",fg="navyblue",bd=5,relief=GROOVE, height=WINDOW_HEIGHT//20)
         # Applying Scrollbar to listbox
         scrol_y.pack(side=RIGHT,fill=Y)
         scrol_y.config(command=self.playlist.yview)
         self.playlist.pack(fill=BOTH)
 
+    def addSong(self):
+        song_dir = filedialog.askopenfilename(initialdir="songs", title="Choose a song", filetypes=[("mp3 files", "*.mp3")])
+        #trimp the directory and file extension to get the song_title
+        start = len(song_dir) - 1
+        while song_dir[start-1] != '/':
+            start -= 1
+        song_title = song_dir[start:len(song_dir)-4]
+
+        #load the actual audio
+        with open(song_dir, "rb") as audio_file:
+            audio = audio_file.read()
+            song = (song_title, audio)
+            self.database.addSong(song)
+
+        self.playlist.insert(END, song_dir)
 
     # Defining Play Song Function
     def playSong(self):
         # Displaying Selected Song title
         self.track.set(self.playlist.get(ACTIVE))
+        print(self.playlist.get(ACTIVE))
         # Displaying Status
         self.status.set("-Playing")
         # Loading Selected Song
