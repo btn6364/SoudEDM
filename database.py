@@ -55,27 +55,27 @@ class Database:
         except Error as e:
             raise Exception(f"[ERROR]: {e}")
     
-    def removeSong(self, id):
+    def removeSong(self, title):
         #remove a song from the table
         sql_statement = """
-            DELETE FROM songs WHERE id=?
+            DELETE FROM songs WHERE title=?
         """
         try:
             cursor = self.conn.cursor()
-            cursor.execute(sql_statement, (id,))
+            cursor.execute(sql_statement, (title,))
             self.conn.commit()
             print("Successfully removed song...")
         except Error as e:
             raise Exception(f"[ERROR]: {e}")
 
 
-    def getSong(self, id):
+    def getSong(self, title):
         sql_statement = """
-            SELECT * FROM songs WHERE id=?
+            SELECT * FROM songs WHERE title=?
         """
         try:
             cursor = self.conn.cursor()
-            cursor.execute(sql_statement, (id,))
+            cursor.execute(sql_statement, (title,))
             rows = cursor.fetchall()
             return rows[0]
         except Error as e:
@@ -99,6 +99,6 @@ class Database:
 #     song2 = ("song2", "/home/baonguyen/Projects/python/pygame/MusicPlayer/songs/bensound-energy.mp3")
 #     database.addSong(song1)
 #     database.addSong(song2)
-#     rows = database.getSongCollection()
+#     rows = database.getSong("song1")
 #     for row in rows:
 #         print(row)

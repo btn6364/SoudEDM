@@ -16,22 +16,32 @@ class MusicPlayer:
 
   # Defining Constructor
     def __init__(self,root):
+        #The root container
         self.root = root
+
         # Title of the window
         self.root.title("SoundEDM")
+
         # Window Geometry
         self.root.geometry(f"{WINDOW_WIDTH}x{WINDOW_HEIGHT}")
+
         # Initiating Pygame
         pygame.init()
+
         # Initiating Pygame Mixer
         pygame.mixer.init()
+
         # Declaring track Variable
         self.track = StringVar()
+
         # Declaring Status Variable
         self.status = StringVar()
 
         #declare if the player is paused
         self.paused = False
+
+        #declare the current audio
+        self.audio = None
 
         #create menu
         self.createMenu()
@@ -120,69 +130,47 @@ class MusicPlayer:
         scrol_y.config(command=self.playlist.yview)
         self.playlist.pack(fill=BOTH)
 
-    """
-    Keep track of the song playing time and duration. 
-    """
-    def songPlaytime(self):
-        # slider_time = self.time_slider.get()
-        # if int(slider_time) + 1 == int(cur_time): 
-        #     # slider hasn't been moved     
-        # else:
-        #     #slider has been moved
-        #     converted_time = time.strftime("%M:%S", time.gmtime(int(slider_time) + 1))
-        #     print("Get here")
-        cur_time = pygame.mixer.music.get_pos() / 1000
-        converted_time = time.strftime("%M:%S", time.gmtime(cur_time))
-        cur_song_indices = self.playlist.curselection()
-        if cur_song_indices:
-            cur_song_idx = cur_song_indices[0] + 1
-            audio = self.database.getSong(cur_song_idx)[2]
-            #load song's length with Mutagen
-            mutagen_mp3 = MP3(audio)
-            song_length = mutagen_mp3.info.length
-            converted_song_length = time.strftime("%M:%S", time.gmtime(song_length))
-            #output to time bar
-            self.time_slider.config(value=cur_time, to=song_length)
-            self.time_bar.config(text=f"Time elapsed: {converted_time} of {converted_song_length}")
-            self.time_bar.after(1000, self.songPlaytime)
 
     """
     Add a song to the playlist. 
     """
     def addSong(self):
         song_dir = filedialog.askopenfilename(initialdir="songs", title="Choose a song", filetypes=[("mp3 files", "*.mp3")])
-        #trimp the directory and file extension to get the song_title
-        start = len(song_dir) - 1
-        while song_dir[start-1] != '/':
-            start -= 1
-        song_title = song_dir[start:len(song_dir)-4]
+        if song_dir:
+            #trimp the directory and file extension to get the song_title
+            start = len(song_dir) - 1
+            while song_dir[start-1] != '/':
+                start -= 1
+            song_title = song_dir[start:len(song_dir)-4]
 
-        #load the audio's directory
-        song = (song_title, song_dir)
-        self.database.addSong(song)
-        self.playlist.insert(END, song_title)
+            #load the audio's directory
+            song = (song_title, song_dir)
+            self.database.addSong(song)
+            self.playlist.insert(END, song_title)
 
     """
     Remove a song from the playlist. 
     """
     def removeSong(self):
+        song_title = self.playlist.get(ACTIVE)
         cur_song_idx = self.playlist.curselection()[0]
-        #stop the song before remove it from the database
-        self.stopSong()
-        self.database.removeSong(cur_song_idx + 1)
-        self.playlist.delete(cur_song_idx)
+        if cur_song_idx >= 0:
+            #stop the song before remove it from the database
+            self.stopSong()
+            self.database.removeSong(song_title)
+            self.playlist.delete(cur_song_idx)
 
     """
     Play the selected song
     """
     def playSong(self):
         song_title = self.playlist.get(ACTIVE)
+        print(song_title)
         self.track.set(song_title)
         self.status.set(" - Playing")
         # Load the audio 
-        cur_song_idx = self.playlist.curselection()[0] + 1
-        audio = self.database.getSong(cur_song_idx)[2]
-        pygame.mixer.music.load(audio)
+        self.audio = self.database.getSong(song_title)[2]
+        pygame.mixer.music.load(self.audio)
         # Playing Selected Song
         pygame.mixer.music.play()
         #Get playtime info
@@ -235,6 +223,30 @@ class MusicPlayer:
             self.playlist.select_set(cur_song_idx)
             self.playlist.activate(cur_song_idx)
             self.playSong()
+
+    """
+        Keep track of the song playing time and duration. 
+    """
+    def songPlaytime(self):
+        # slider_time = self.time_slider.get()
+        # if int(slider_time) + 1 == int(cur_time): 
+        #     # slider hasn't been moved     
+        # else:
+        #     #slider has been moved
+        #     converted_time = time.strftime("%M:%S", time.gmtime(int(slider_time) + 1))
+        #     print("Get here")
+        cur_time = pygame.mixer.music.get_pos() / 1000
+        converted_time = time.strftime("%M:%S", time.gmtime(cur_time))
+        cur_song_indices = self.playlist.curselection()
+        if cur_song_indices:
+            #load song's length with Mutagen
+            mutagen_mp3 = MP3(self.audio)
+            song_length = mutagen_mp3.info.length
+            converted_song_length = time.strftime("%M:%S", time.gmtime(song_length))
+            #output to time bar
+            self.time_slider.config(value=cur_time, to=song_length)
+            self.time_bar.config(text=f"Time elapsed: {converted_time} of {converted_song_length}")
+            self.time_bar.after(1000, self.songPlaytime)
 
 """
     Execute the music player. 
