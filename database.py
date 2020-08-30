@@ -54,10 +54,44 @@ class Database:
             return cursor.lastrowid
         except Error as e:
             raise Exception(f"[ERROR]: {e}")
+    
+    def removeSong(self, id):
+        #remove a song from the table
+        sql_statement = """
+            DELETE FROM songs WHERE id=?
+        """
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute(sql_statement, (id,))
+            self.conn.commit()
+            print("Successfully removed song...")
+        except Error as e:
+            raise Exception(f"[ERROR]: {e}")
 
 
-    def getSong(self, title):
-        pass
+    def getSong(self, id):
+        sql_statement = """
+            SELECT * FROM songs WHERE id=?
+        """
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute(sql_statement, (id,))
+            rows = cursor.fetchall()
+            return rows[0]
+        except Error as e:
+            raise Exception(f"[ERROR]: {e}")
+
+    def getSongCollection(self):
+        sql_statement = """
+            SELECT * FROM songs
+        """
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute(sql_statement)
+            rows = cursor.fetchall()
+            return rows
+        except Error as e:
+            raise Exception(f"[ERROR]: {e}")
 
 # if __name__ == "__main__":
 #     database = Database()
@@ -65,3 +99,6 @@ class Database:
 #     song2 = ("song2", "/home/baonguyen/Projects/python/pygame/MusicPlayer/songs/bensound-energy.mp3")
 #     database.addSong(song1)
 #     database.addSong(song2)
+#     rows = database.getSongCollection()
+#     for row in rows:
+#         print(row)

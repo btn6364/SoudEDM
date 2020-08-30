@@ -1,9 +1,12 @@
 # Importing Required Modules & libraries
 from tkinter import *
 from tkinter import filedialog
+from constants import *
+from pydub import AudioSegment
+from pydub.playback import play
 import pygame
 import os
-from constants import *
+import io
 
 #Import Database
 from database import Database
@@ -42,6 +45,15 @@ class MusicPlayer:
         #create database connection
         self.database = Database()
 
+        #create the playlist from the existing database
+        self.createPlaylist()
+
+    def createPlaylist(self):
+        #Insert song title into play list 
+        songs = self.database.getSongCollection()
+        for id, song_title, song_dir in songs:
+            self.playlist.insert(END, song_title)
+
     def createMenu(self):
         #create the menu bar
         main_menu = Menu(self.root)
@@ -49,6 +61,7 @@ class MusicPlayer:
         action_menu = Menu(main_menu)
         main_menu.add_cascade(label="Action", menu=action_menu)
         action_menu.add_command(label="Add song", command=self.addSong)
+        action_menu.add_command(label="Remove song", command=self.removeSong)
 
     def createTrackFrame(self):
         # Creating Track Frame for Song label & status label
@@ -90,26 +103,30 @@ class MusicPlayer:
             start -= 1
         song_title = song_dir[start:len(song_dir)-4]
 
-        #load the actual audio
-        with open(song_dir, "rb") as audio_file:
-            audio = audio_file.read()
-            song = (song_title, audio)
-            self.database.addSong(song)
+        #load the audio's directory
+        song = (song_title, song_dir)
+        self.database.addSong(song)
+        self.playlist.insert(END, song_title)
 
-        self.playlist.insert(END, song_dir)
+    def removeSong(self):
+        cur_song_idx = self.playlist.curselection()[0]
+        #stop the song before remove it from the database
+        self.stopSong()
+        self.database.removeSong(cur_song_idx + 1)
+        self.playlist.delete(cur_song_idx)
 
     # Defining Play Song Function
     def playSong(self):
-        # Displaying Selected Song title
-        self.track.set(self.playlist.get(ACTIVE))
-        print(self.playlist.get(ACTIVE))
-        # Displaying Status
-        self.status.set("-Playing")
-        # Loading Selected Song
-        pygame.mixer.music.load(self.playlist.get(ACTIVE))
+        song_title = self.playlist.get(ACTIVE)
+        self.track.set(song_title)
+        self.status.set(" - Playing")
+        # Load the audio 
+        cur_song_idx = self.playlist.curselection()[0] + 1
+        audio = self.database.getSong(cur_song_idx)[2]
+        pygame.mixer.music.load(audio)
         # Playing Selected Song
         pygame.mixer.music.play()
-
+      
     def stopSong(self):
         # Displaying Status
         self.status.set("-Stopped")
