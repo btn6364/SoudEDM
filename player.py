@@ -141,12 +141,12 @@ class MusicPlayer:
         # Creating Button Frame
         buttonframe = LabelFrame(self.root,text="Control Panel",font=("times new roman",15,"bold"),bg="silver",fg="white",bd=5,relief=GROOVE)
         buttonframe.place(x=0,y=WINDOW_HEIGHT * 0.5,width=WINDOW_WIDTH * 0.6,height=WINDOW_HEIGHT * 0.5)
-        self.prev_button = Button(buttonframe,image=self.resize_images[0],command=self.prevSong, width = 50, height=50, bg="silver", borderwidth=0).grid(row=0,column=0,padx=5,pady=5)
-        self.next_button = Button(buttonframe,image=self.resize_images[1],command=self.nextSong, width = 50, height=50, bg="silver", borderwidth=0).grid(row=0,column=1,padx=5,pady=5)
-        self.play_button = Button(buttonframe,image=self.resize_images[2],command=self.playSong, width = 50, height=50, bg="silver", borderwidth=0).grid(row=0,column=2,padx=5,pady=5)
-        self.pause_button = Button(buttonframe,image=self.resize_images[3],command=self.pauseSong, width = 50, height=50, bg="silver", borderwidth=0).grid(row=0,column=3,padx=5,pady=5)
-        self.stop_button = Button(buttonframe,image=self.resize_images[4],command=self.stopSong, width = 50, height=50, bg="silver", borderwidth=0).grid(row=0,column=4,padx=5,pady=5)
-        self.shuffle_button = Button(buttonframe,image=self.resize_images[5],command=self.shuffleSong, width = 50, height=50, bg="silver", borderwidth=0).grid(row=0,column=5,padx=5,pady=5)
+        self.prev_button = Button(buttonframe,image=self.resize_images[0],command=self.prevSong, width = 50, height=50, bg="silver", borderwidth=0).grid(row=0,column=0,padx=20,pady=5)
+        self.next_button = Button(buttonframe,image=self.resize_images[1],command=self.nextSong, width = 50, height=50, bg="silver", borderwidth=0).grid(row=0,column=1,padx=20,pady=5)
+        self.play_button = Button(buttonframe,image=self.resize_images[2],command=self.playSong, width = 50, height=50, bg="silver", borderwidth=0).grid(row=0,column=2,padx=20,pady=5)
+        self.pause_button = Button(buttonframe,image=self.resize_images[3],command=self.pauseSong, width = 50, height=50, bg="silver", borderwidth=0).grid(row=0,column=3,padx=20,pady=5)
+        self.stop_button = Button(buttonframe,image=self.resize_images[4],command=self.stopSong, width = 50, height=50, bg="silver", borderwidth=0).grid(row=0,column=4,padx=20,pady=5)
+        self.shuffle_button = Button(buttonframe,image=self.resize_images[5],command=self.shuffleSong, width = 50, height=50, bg="silver", borderwidth=0).grid(row=0,column=5,padx=20,pady=5)
 
     """
     Create the playlist frame containing all songs. 
