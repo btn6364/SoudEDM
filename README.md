@@ -26,6 +26,7 @@ Installed all the requirement packages.
 sudo apt-get install python3-tk
 pip3 install pygame
 pip3 install mutagen
+pip3 install pillow
 ```
 
 Navigate to the project. Run the application.
