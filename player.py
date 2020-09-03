@@ -86,21 +86,6 @@ class MusicPlayer:
         for song_title in song_titles:
             self.playlist.insert(END, song_title)
 
-    """
-    Set up auto play all songs in the list. 
-    """
-    def autoPlaylist(self):
-        cur_indices = self.playlist.curselection()
-        if not cur_indices:
-            self.playlist.selection_set(first=0)
-        self.startPlayFromCurrentIdx()
-
-    """
-    Start autoplay from the selected song index.
-    """
-    def startPlayFromCurrentIdx(self):
-        pass
-
 
 
     """
@@ -239,24 +224,26 @@ class MusicPlayer:
     """
     def nextSong(self):
         cur_song_indices = self.playlist.curselection()
-        cur_song_idx = cur_song_indices[0] + 1
-        if cur_song_idx < self.playlist.size():
-            self.playlist.selection_clear(cur_song_indices)
-            self.playlist.select_set(cur_song_idx)
-            self.playlist.activate(cur_song_idx)
-            self.playSong()
+        if cur_song_indices:
+            cur_song_idx = cur_song_indices[0] + 1
+            if cur_song_idx < self.playlist.size():
+                self.playlist.selection_clear(cur_song_indices)
+                self.playlist.select_set(cur_song_idx)
+                self.playlist.activate(cur_song_idx)
+                self.playSong()
 
     """
     Play the previous song. Stop if the current song is the first one. 
     """
     def prevSong(self):
         cur_song_indices = self.playlist.curselection()
-        cur_song_idx = cur_song_indices[0] - 1
-        if cur_song_idx >= 0:
-            self.playlist.selection_clear(cur_song_indices)
-            self.playlist.select_set(cur_song_idx)
-            self.playlist.activate(cur_song_idx)
-            self.playSong()
+        if cur_song_indices:
+            cur_song_idx = cur_song_indices[0] - 1
+            if cur_song_idx >= 0:
+                self.playlist.selection_clear(cur_song_indices)
+                self.playlist.select_set(cur_song_idx)
+                self.playlist.activate(cur_song_idx)
+                self.playSong()
 
     """
     Shuffle playlist using Fisher_Yates algorithm. 

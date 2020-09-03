@@ -12,8 +12,8 @@ def Fisher_Yates_randomize(songs):
     for i in range(len(songs)-1, 0, -1):
         #pick a random number from 0 to i
         j = random.randint(0, i)
-        #swap arr[i] and arr[j]
         
+        #swap arr[i] and arr[j]
         songs[i], songs[j] = songs[j], songs[i]
     return songs
 
