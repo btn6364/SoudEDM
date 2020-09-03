@@ -6,10 +6,12 @@ import pygame
 import os
 import time
 from mutagen.mp3 import MP3
+from PIL import Image, ImageTk
 
 #Import utils
-from constants import *
+from constants import WINDOW_HEIGHT, WINDOW_WIDTH, IMAGE_PATHS
 from utils.Fisher_Yates_shuffle import Fisher_Yates_randomize
+from utils.read_images import resize_images
 
 #Import Database
 from database import Database
@@ -45,6 +47,9 @@ class MusicPlayer:
 
         #declare the current audio
         self.audio = None
+
+        #declare instance of button images. 
+        self.resize_images = resize_images(IMAGE_PATHS)
 
         #create menu
         self.createMenu()
@@ -82,10 +87,21 @@ class MusicPlayer:
             self.playlist.insert(END, song_title)
 
     """
-    Get the recent playlist using LRU Cache.
+    Set up auto play all songs in the list. 
     """
-    def recentPlaylist(self):
+    def autoPlaylist(self):
+        cur_indices = self.playlist.curselection()
+        if not cur_indices:
+            self.playlist.selection_set(first=0)
+        self.startPlayFromCurrentIdx()
+
+    """
+    Start autoplay from the selected song index.
+    """
+    def startPlayFromCurrentIdx(self):
         pass
+
+
 
     """
     Create the action menu. 
@@ -123,16 +139,14 @@ class MusicPlayer:
     """
     def createButtonFrame(self):
         # Creating Button Frame
-        buttonframe = LabelFrame(self.root,text="Control Panel",font=("times new roman",15,"bold"),bg="grey",fg="white",bd=5,relief=GROOVE)
+        buttonframe = LabelFrame(self.root,text="Control Panel",font=("times new roman",15,"bold"),bg="silver",fg="white",bd=5,relief=GROOVE)
         buttonframe.place(x=0,y=WINDOW_HEIGHT * 0.5,width=WINDOW_WIDTH * 0.6,height=WINDOW_HEIGHT * 0.5)
-        #Insert Play, Pause, Unpause, Stop buttons
-        play_button = Button(buttonframe,text="PLAY",command=self.playSong,width=4,height=1,font=("times new roman",14,"bold"),fg="navyblue",bg="gold").grid(row=0,column=0,padx=5,pady=5)
-        pause_button = Button(buttonframe,text="PAUSE",command=self.pauseSong,width=5,height=1,font=("times new roman",14,"bold"),fg="navyblue",bg="gold").grid(row=0,column=1,padx=5,pady=5)
-        stop_button = Button(buttonframe,text="STOP",command=self.stopSong,width=4,height=1,font=("times new roman",14,"bold"),fg="navyblue",bg="gold").grid(row=0,column=2,padx=5,pady=5)
-        forward_button = Button(buttonframe,text="NEXT",command=self.nextSong,width=4,height=1,font=("times new roman",14,"bold"),fg="navyblue",bg="gold").grid(row=0,column=3,padx=5,pady=5)
-        back_button = Button(buttonframe,text="PREV",command=self.prevSong,width=4,height=1,font=("times new roman",14,"bold"),fg="navyblue",bg="gold").grid(row=0,column=4,padx=5,pady=5)
-        shuffle_button = Button(buttonframe,text="SHUFFLE",command=self.shuffleSong,width=7,height=1,font=("times new roman",14,"bold"),fg="navyblue",bg="gold").grid(row=0,column=5,padx=5,pady=5)
-        recent_played = Button(buttonframe,text="RECENT PLAYED",command=self.recentPlaylist,width=10,height=1,font=("times new roman",12,"bold"),fg="navyblue",bg="gold").grid(row=0,column=6,padx=5,pady=5)
+        self.prev_button = Button(buttonframe,image=self.resize_images[0],command=self.prevSong, width = 50, height=50, bg="silver", borderwidth=0).grid(row=0,column=0,padx=5,pady=5)
+        self.next_button = Button(buttonframe,image=self.resize_images[1],command=self.nextSong, width = 50, height=50, bg="silver", borderwidth=0).grid(row=0,column=1,padx=5,pady=5)
+        self.play_button = Button(buttonframe,image=self.resize_images[2],command=self.playSong, width = 50, height=50, bg="silver", borderwidth=0).grid(row=0,column=2,padx=5,pady=5)
+        self.pause_button = Button(buttonframe,image=self.resize_images[3],command=self.pauseSong, width = 50, height=50, bg="silver", borderwidth=0).grid(row=0,column=3,padx=5,pady=5)
+        self.stop_button = Button(buttonframe,image=self.resize_images[4],command=self.stopSong, width = 50, height=50, bg="silver", borderwidth=0).grid(row=0,column=4,padx=5,pady=5)
+        self.shuffle_button = Button(buttonframe,image=self.resize_images[5],command=self.shuffleSong, width = 50, height=50, bg="silver", borderwidth=0).grid(row=0,column=5,padx=5,pady=5)
 
     """
     Create the playlist frame containing all songs. 
@@ -193,13 +207,15 @@ class MusicPlayer:
         pygame.mixer.music.play()
         #Get playtime info
         self.songPlaytime()
-      
+
+
     """
     Stop the current playing song. 
     """
     def stopSong(self):
         self.status.set(" - Stopped")
         pygame.mixer.music.stop()
+        # pygame.mixer.music.unload() - only available in pygame 2.0.0
         #clear the time bar and selection bar
         self.playlist.selection_clear(ACTIVE)
         self.time_bar.config(text="")
